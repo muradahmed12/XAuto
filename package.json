@@ -1,0 +1,15 @@
+{
+  "name": "xauto",
+  "version": "1.0.0",
+  "private": true,
+  "description": "X post automation dashboard for @devmuradahmed",
+  "scripts": {
+    "dev": "python scripts/local_server.py",
+    "dev:vercel": "vercel dev --listen 3000",
+    "deploy": "vercel deploy --prod",
+    "pull-env": "vercel env pull .env.local"
+  },
+  "devDependencies": {
+    "vercel": "^54.14.5"
+  }
+}

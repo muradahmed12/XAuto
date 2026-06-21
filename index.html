@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>XAuto — Post Command Center</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            surface: {
+              950: '#0a0b0f',
+              900: '#111318',
+              800: '#181b22',
+              700: '#22262f',
+              600: '#2d3340',
+            },
+            accent: {
+              DEFAULT: '#3b82f6',
+              glow: '#60a5fa',
+              muted: '#1e3a5f',
+            },
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+          },
+          boxShadow: {
+            glow: '0 0 40px -10px rgba(59, 130, 246, 0.35)',
+            card: '0 1px 0 rgba(255,255,255,0.04) inset, 0 8px 32px rgba(0,0,0,0.4)',
+          },
+        },
+      },
+    };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: 'Inter', system-ui, sans-serif; }
+    .gradient-border {
+      background: linear-gradient(135deg, rgba(59,130,246,0.4), rgba(139,92,246,0.2));
+      padding: 1px;
+      border-radius: 0.75rem;
+    }
+    .scrollbar-thin::-webkit-scrollbar { width: 6px; }
+    .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+    .scrollbar-thin::-webkit-scrollbar-thumb { background: #2d3340; border-radius: 3px; }
+    @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }
+  </style>
+</head>
+<body class="h-full bg-surface-950 text-zinc-100 antialiased">
+  <div class="min-h-full">
+    <!-- Header -->
+    <header class="border-b border-white/5 bg-surface-900/80 backdrop-blur-xl sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-accent to-violet-600 flex items-center justify-center shadow-glow">
+            <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          </div>
+          <div>
+            <h1 class="text-lg font-semibold tracking-tight">XAuto</h1>
+            <p class="text-xs text-zinc-500 font-mono">@devmuradahmed · command center</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <button id="settingsBtn" type="button" title="Settings" class="p-2 text-zinc-500 hover:text-zinc-300 border border-white/10 rounded-lg hover:bg-white/5 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          </button>
+          <button id="refreshBtn" type="button" class="px-3 py-2 text-sm text-zinc-400 hover:text-zinc-200 border border-white/10 rounded-lg hover:bg-white/5 transition-colors">
+            Refresh
+          </button>
+          <button id="publishBtn" type="button" class="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-emerald-400 border border-emerald-600/30 rounded-lg hover:bg-emerald-600/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+            <span id="publishLabel">Publish Now</span>
+          </button>
+          <button id="generateBtn" type="button" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-accent hover:bg-accent-glow text-white rounded-lg shadow-glow transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+            <svg id="generateIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            <span id="generateLabel">Generate Draft</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <!-- Toast -->
+      <div id="toast" class="fixed top-20 right-4 z-[100] hidden max-w-sm">
+        <div id="toastInner" class="px-4 py-3 rounded-lg border shadow-card text-sm font-medium"></div>
+      </div>
+
+      <!-- Settings modal -->
+      <div id="settingsModal" class="fixed inset-0 z-[200] hidden">
+        <div id="settingsBackdrop" class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+        <div class="absolute inset-0 flex items-center justify-center p-4">
+          <div class="w-full max-w-md bg-surface-900 border border-white/10 rounded-xl shadow-card p-6">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-semibold text-zinc-100">Settings</h3>
+              <button id="closeSettingsBtn" type="button" class="text-zinc-500 hover:text-zinc-300">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            </div>
+            <label class="block text-sm text-zinc-400 mb-2" for="cronTokenInput">Publish API token</label>
+            <input id="cronTokenInput" type="password" placeholder="Same as CRON_SECRET (optional)" class="w-full px-3 py-2 text-sm bg-surface-800 border border-white/10 rounded-lg text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-accent/50 font-mono" />
+            <p class="mt-2 text-xs text-zinc-500 leading-relaxed">Required for manual <strong class="text-zinc-400">Publish Now</strong> when <code class="text-zinc-400">CRON_SECRET</code> is set in production. Stored in your browser only.</p>
+            <div class="mt-5 flex justify-end gap-2">
+              <button id="clearTokenBtn" type="button" class="px-3 py-2 text-sm text-zinc-400 hover:text-zinc-200">Clear</button>
+              <button id="saveTokenBtn" type="button" class="px-4 py-2 text-sm font-medium bg-accent text-white rounded-lg hover:bg-accent-glow">Save</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Metrics -->
+      <section class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <div class="bg-surface-800/60 border border-white/5 rounded-xl p-5 shadow-card">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-medium uppercase tracking-wider text-zinc-500">Pending Drafts</span>
+            <span class="w-2 h-2 rounded-full bg-amber-400 pulse-dot"></span>
+          </div>
+          <p id="metricDrafts" class="text-3xl font-bold tabular-nums">—</p>
+        </div>
+        <div class="bg-surface-800/60 border border-white/5 rounded-xl p-5 shadow-card">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-medium uppercase tracking-wider text-zinc-500">Approved Queue</span>
+            <span class="w-2 h-2 rounded-full bg-accent pulse-dot"></span>
+          </div>
+          <p id="metricApproved" class="text-3xl font-bold tabular-nums">—</p>
+        </div>
+        <div class="bg-surface-800/60 border border-white/5 rounded-xl p-5 shadow-card">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-medium uppercase tracking-wider text-zinc-500">Published</span>
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          </div>
+          <p id="metricPublished" class="text-3xl font-bold tabular-nums">—</p>
+        </div>
+      </section>
+
+      <!-- Workspace -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Drafts -->
+        <section class="bg-surface-900/50 border border-white/5 rounded-xl overflow-hidden shadow-card">
+          <div class="px-5 py-4 border-b border-white/5 flex items-center justify-between">
+            <h2 class="font-semibold text-zinc-200">Review Drafts</h2>
+            <span id="draftsBadge" class="text-xs font-mono text-zinc-500 bg-surface-800 px-2 py-0.5 rounded">0</span>
+          </div>
+          <div id="draftsList" class="p-4 space-y-3 max-h-[520px] overflow-y-auto scrollbar-thin">
+            <p class="text-sm text-zinc-500 text-center py-12">Loading drafts…</p>
+          </div>
+        </section>
+
+        <!-- Queue & History -->
+        <section class="space-y-6">
+          <div class="bg-surface-900/50 border border-white/5 rounded-xl overflow-hidden shadow-card">
+            <div class="px-5 py-4 border-b border-white/5 flex items-center justify-between">
+              <h2 class="font-semibold text-zinc-200">Approved Queue</h2>
+              <span id="queueBadge" class="text-xs font-mono text-zinc-500 bg-surface-800 px-2 py-0.5 rounded">0</span>
+            </div>
+            <div id="queueList" class="p-4 space-y-3 max-h-[240px] overflow-y-auto scrollbar-thin">
+              <p class="text-sm text-zinc-500 text-center py-8">Loading queue…</p>
+            </div>
+          </div>
+
+          <div class="bg-surface-900/50 border border-white/5 rounded-xl overflow-hidden shadow-card">
+            <div class="px-5 py-4 border-b border-white/5 flex items-center justify-between">
+              <h2 class="font-semibold text-zinc-200">Published History</h2>
+              <span id="historyBadge" class="text-xs font-mono text-zinc-500 bg-surface-800 px-2 py-0.5 rounded">0</span>
+            </div>
+            <div id="historyList" class="p-4 space-y-3 max-h-[240px] overflow-y-auto scrollbar-thin">
+              <p class="text-sm text-zinc-500 text-center py-8">Loading history…</p>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-xs text-zinc-600">
+      XAuto · Gemini drafts · Vercel KV · Cron publish
+    </footer>
+  </div>
+
+  <script>
+    const API = {
+      posts: '/api/posts',
+      generate: '/api/generate',
+      publish: '/api/publish',
+    };
+
+    const TOKEN_KEY = 'xauto_cron_token';
+
+    let posts = [];
+    let countdownTimer = null;
+
+    function getAuthHeaders() {
+      const token = localStorage.getItem(TOKEN_KEY);
+      return token ? { Authorization: `Bearer ${token}` } : {};
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function formatDate(iso) {
+      if (!iso) return '—';
+      try {
+        return new Date(iso).toLocaleString(undefined, {
+          month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
+        });
+      } catch {
+        return iso;
+      }
+    }
+
+    function getCountdown(iso) {
+      const target = new Date(iso).getTime();
+      const diff = target - Date.now();
+      if (diff <= 0) return { label: 'Due now', urgent: true };
+      const h = Math.floor(diff / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      const parts = [];
+      if (h) parts.push(`${h}h`);
+      parts.push(`${m}m`);
+      parts.push(`${s}s`);
+      return { label: parts.join(' '), urgent: diff < 300000 };
+    }
+
+    function showToast(message, type = 'info') {
+      const toast = document.getElementById('toast');
+      const inner = document.getElementById('toastInner');
+      const styles = {
+        success: 'bg-emerald-950/90 border-emerald-700/50 text-emerald-200',
+        error: 'bg-red-950/90 border-red-700/50 text-red-200',
+        info: 'bg-surface-800/95 border-white/10 text-zinc-200',
+      };
+      inner.className = `px-4 py-3 rounded-lg border shadow-card text-sm font-medium ${styles[type] || styles.info}`;
+      inner.textContent = message;
+      toast.classList.remove('hidden');
+      clearTimeout(showToast._timer);
+      showToast._timer = setTimeout(() => toast.classList.add('hidden'), 4000);
+    }
+
+    async function apiFetch(url, options = {}) {
+      const res = await fetch(url, {
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders(), ...options.headers },
+        ...options,
+      });
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        throw new Error(`Invalid JSON response (${res.status})`);
+      }
+      if (!res.ok) {
+        throw new Error(data.error || data.message || `Request failed (${res.status})`);
+      }
+      return data;
+    }
+
+    function renderPostCard(post, variant) {
+      const id = escapeHtml(post.id);
+      const content = escapeHtml(post.content || '');
+      const scheduled = formatDate(post.scheduled_for);
+      const created = formatDate(post.created_at);
+
+      if (variant === 'draft') {
+        return `
+          <article class="bg-surface-800/80 border border-white/5 rounded-lg p-4 hover:border-white/10 transition-colors" data-id="${id}">
+            <p class="text-sm text-zinc-200 leading-relaxed mb-3">${content}</p>
+            <div class="flex flex-wrap items-center gap-2 text-xs text-zinc-500 font-mono mb-3">
+              <span>Scheduled ${scheduled}</span>
+              <span class="text-zinc-700">·</span>
+              <span>${content.length}/280</span>
+            </div>
+            <div class="flex gap-2">
+              <button type="button" data-action="approve" data-id="${id}" class="flex-1 px-3 py-1.5 text-xs font-medium bg-emerald-600/20 text-emerald-400 border border-emerald-600/30 rounded-md hover:bg-emerald-600/30 transition-colors">Approve</button>
+              <button type="button" data-action="delete" data-id="${id}" class="px-3 py-1.5 text-xs font-medium text-red-400 border border-red-900/40 rounded-md hover:bg-red-950/40 transition-colors">Delete</button>
+            </div>
+          </article>`;
+      }
+
+      if (variant === 'queue') {
+        const cd = getCountdown(post.scheduled_for);
+        return `
+          <article class="bg-surface-800/80 border border-accent/20 rounded-lg p-4" data-id="${id}">
+            <div class="flex items-start justify-between gap-3 mb-2">
+              <p class="text-sm text-zinc-200 leading-relaxed flex-1">${content}</p>
+              <span class="shrink-0 text-xs font-mono px-2 py-1 rounded ${cd.urgent ? 'bg-amber-500/20 text-amber-300' : 'bg-accent-muted text-accent-glow'}">${cd.label}</span>
+            </div>
+            <p class="text-xs text-zinc-500 font-mono">Publishes ${scheduled}</p>
+          </article>`;
+      }
+
+      // published
+      const tweetLink = post.tweet_id
+        ? `<a href="https://x.com/i/web/status/${escapeHtml(post.tweet_id)}" target="_blank" rel="noopener" class="text-accent-glow hover:underline">View on X</a>`
+        : '';
+      return `
+        <article class="bg-surface-800/60 border border-white/5 rounded-lg p-4 opacity-80" data-id="${id}">
+          <p class="text-sm text-zinc-300 leading-relaxed mb-2">${content}</p>
+          <div class="flex items-center gap-2 text-xs text-zinc-500 font-mono">
+            <span>${formatDate(post.published_at || post.scheduled_for)}</span>
+            ${tweetLink ? `<span class="text-zinc-700">·</span>${tweetLink}` : ''}
+          </div>
+        </article>`;
+    }
+
+    function renderAll() {
+      const drafts = posts.filter(p => p.status === 'draft');
+      const approved = posts.filter(p => p.status === 'approved').sort((a, b) => new Date(a.scheduled_for) - new Date(b.scheduled_for));
+      const published = posts.filter(p => p.status === 'published').sort((a, b) => new Date(b.published_at || b.scheduled_for) - new Date(a.published_at || a.scheduled_for));
+
+      document.getElementById('metricDrafts').textContent = drafts.length;
+      document.getElementById('metricApproved').textContent = approved.length;
+      document.getElementById('metricPublished').textContent = published.length;
+
+      document.getElementById('draftsBadge').textContent = drafts.length;
+      document.getElementById('queueBadge').textContent = approved.length;
+      document.getElementById('historyBadge').textContent = published.length;
+
+      document.getElementById('draftsList').innerHTML = drafts.length
+        ? drafts.map(p => renderPostCard(p, 'draft')).join('')
+        : '<p class="text-sm text-zinc-500 text-center py-12">No drafts waiting for review.</p>';
+
+      document.getElementById('queueList').innerHTML = approved.length
+        ? approved.map(p => renderPostCard(p, 'queue')).join('')
+        : '<p class="text-sm text-zinc-500 text-center py-8">Queue is empty.</p>';
+
+      document.getElementById('historyList').innerHTML = published.length
+        ? published.map(p => renderPostCard(p, 'published')).join('')
+        : '<p class="text-sm text-zinc-500 text-center py-8">Nothing published yet.</p>';
+    }
+
+    async function loadPosts() {
+      const data = await apiFetch(API.posts);
+      posts = data.posts || [];
+      renderAll();
+    }
+
+    async function approvePost(id) {
+      await apiFetch(API.posts, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'approve', id }),
+      });
+      showToast('Post approved and queued', 'success');
+      await loadPosts();
+    }
+
+    async function deletePost(id) {
+      if (!confirm('Delete this draft permanently?')) return;
+      await apiFetch(API.posts, {
+        method: 'DELETE',
+        body: JSON.stringify({ id }),
+      });
+      showToast('Post deleted', 'success');
+      await loadPosts();
+    }
+
+    async function generateDraft() {
+      const btn = document.getElementById('generateBtn');
+      const label = document.getElementById('generateLabel');
+      btn.disabled = true;
+      label.textContent = 'Generating…';
+      try {
+        const data = await apiFetch(API.generate, { method: 'POST' });
+        showToast('New draft generated', 'success');
+        if (data.post) {
+          posts.unshift(data.post);
+          renderAll();
+        } else {
+          await loadPosts();
+        }
+      } catch (err) {
+        showToast(err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        label.textContent = 'Generate Draft';
+      }
+    }
+
+    async function publishDuePosts() {
+      const btn = document.getElementById('publishBtn');
+      const label = document.getElementById('publishLabel');
+      btn.disabled = true;
+      label.textContent = 'Publishing…';
+      try {
+        const data = await apiFetch(API.publish, { method: 'POST' });
+        const count = data.published_count ?? 0;
+        if (count > 0) {
+          showToast(`Published ${count} post${count === 1 ? '' : 's'}`, 'success');
+        } else if (data.errors?.length) {
+          showToast(data.errors[0].error || 'Publish failed', 'error');
+        } else {
+          showToast('No due posts in queue', 'info');
+        }
+        await loadPosts();
+      } catch (err) {
+        if (err.message.toLowerCase().includes('unauthorized')) {
+          showToast('Unauthorized — add CRON_SECRET in Settings', 'error');
+        } else {
+          showToast(err.message, 'error');
+        }
+      } finally {
+        btn.disabled = false;
+        label.textContent = 'Publish Now';
+      }
+    }
+
+    function openSettings() {
+      document.getElementById('cronTokenInput').value = localStorage.getItem(TOKEN_KEY) || '';
+      document.getElementById('settingsModal').classList.remove('hidden');
+    }
+
+    function closeSettings() {
+      document.getElementById('settingsModal').classList.add('hidden');
+    }
+
+    function bindEvents() {
+      document.getElementById('generateBtn').addEventListener('click', generateDraft);
+      document.getElementById('publishBtn').addEventListener('click', publishDuePosts);
+      document.getElementById('settingsBtn').addEventListener('click', openSettings);
+      document.getElementById('closeSettingsBtn').addEventListener('click', closeSettings);
+      document.getElementById('settingsBackdrop').addEventListener('click', closeSettings);
+      document.getElementById('saveTokenBtn').addEventListener('click', () => {
+        const value = document.getElementById('cronTokenInput').value.trim();
+        if (value) localStorage.setItem(TOKEN_KEY, value);
+        else localStorage.removeItem(TOKEN_KEY);
+        closeSettings();
+        showToast(value ? 'Token saved' : 'Token cleared', 'success');
+      });
+      document.getElementById('clearTokenBtn').addEventListener('click', () => {
+        document.getElementById('cronTokenInput').value = '';
+        localStorage.removeItem(TOKEN_KEY);
+        showToast('Token cleared', 'info');
+      });
+      document.getElementById('refreshBtn').addEventListener('click', async () => {
+        try {
+          await loadPosts();
+          showToast('Refreshed', 'info');
+        } catch (err) {
+          showToast(err.message, 'error');
+        }
+      });
+
+      document.getElementById('draftsList').addEventListener('click', async (e) => {
+        const btn = e.target.closest('[data-action]');
+        if (!btn) return;
+        const { action, id } = btn.dataset;
+        try {
+          if (action === 'approve') await approvePost(id);
+          if (action === 'delete') await deletePost(id);
+        } catch (err) {
+          showToast(err.message, 'error');
+        }
+      });
+
+      countdownTimer = setInterval(() => {
+        if (posts.some(p => p.status === 'approved')) renderAll();
+      }, 1000);
+    }
+
+    async function init() {
+      bindEvents();
+      try {
+        await loadPosts();
+      } catch (err) {
+        showToast(`Failed to load posts: ${err.message}`, 'error');
+        document.getElementById('draftsList').innerHTML = '<p class="text-sm text-red-400 text-center py-12">Could not connect to API.</p>';
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>
