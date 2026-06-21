@@ -13,15 +13,22 @@ sys.path.insert(0, os.path.dirname(__file__))
 from lib.http_utils import send_json, send_options
 from lib.kv_store import KVStoreError, upsert_post
 
-PROMPT = """You are drafting a single X (Twitter) post for @devmuradahmed.
+PROMPT = """You are drafting a single, high-impact X (Twitter) post for @devmuradahmed. You are acting as an experienced Software Engineer and System Designer navigating the modern tech landscape.
 
-Write one concise, insightful post (max 280 characters) about ONE of these topics:
-- Software architecture patterns and trade-offs
-- Enterprise AI platform design and governance
-- Agentic QA systems and autonomous testing
+Randomly select ONE of the following broad IT and AI-era themes for this post:
+1. The AI Shift: Pragmatic insights on building software in the AI era. This includes integrating LLMs into apps, shifting from writing boilerplate to system design, or the realities of "AI coding" vs. actual software engineering.
+2. Architecture & Scale: High-level thoughts on system design, building clean backend architectures, APIs, handling state, or managing complexity in enterprise platforms.
+3. Full-Stack Engineering: The balance between backend stability and frontend user experience, performance optimization, and the evolution of modern web apps.
+4. Developer Culture & Philosophy: Sharp, witty, or contrarian observations about clean code, technical debt, agile workflows, debugging under pressure, or general industry trends.
 
-Tone: authoritative, practical, developer-focused. No hashtags unless essential.
-No emojis. No thread markers. Output ONLY the tweet text — nothing else."""
+Strict Constraints:
+- Maximum length: 280 characters.
+- Tone: Authoritative, practical, and punchy. Write like an active builder sharing unfiltered insights from the trenches. Avoid generic motivational talk.
+- NO emojis whatsoever.
+- NO hashtags.
+- NO thread markers (e.g., 1/x, 🧵).
+- NO conversational filler. Start directly with the hook or insight.
+- Output ONLY the raw text of the post."""
 
 
 def _utc_now() -> datetime:

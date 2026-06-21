@@ -9,7 +9,7 @@ from http.server import BaseHTTPRequestHandler
 
 sys.path.insert(0, os.path.dirname(__file__))
 
-from lib.http_utils import send_json, send_options
+from lib.http_utils import read_json_body, send_json, send_options
 from lib.kv_store import KVStoreError, get_all_posts, upsert_post
 
 
@@ -105,6 +105,16 @@ class handler(BaseHTTPRequestHandler):
             send_json(self, 401, {"success": False, "error": "Unauthorized"})
             return
 
+        action = ""
+        if self.command == "POST":
+            try:
+                data = read_json_body(self)
+            except ValueError:
+                data = {}
+            action = str(data.get("action", "")).strip().lower()
+
+        publish_all = action == "publish_all"
+
         try:
             now = _utc_now()
             posts = get_all_posts()
@@ -113,15 +123,17 @@ class handler(BaseHTTPRequestHandler):
             for post in posts:
                 if post.get("status") != "approved":
                     continue
-                scheduled_raw = post.get("scheduled_for")
-                if not isinstance(scheduled_raw, str):
-                    continue
-                try:
-                    scheduled_at = _parse_iso(scheduled_raw)
-                except ValueError:
-                    continue
-                if scheduled_at <= now:
-                    due_posts.append(post)
+                if not publish_all:
+                    scheduled_raw = post.get("scheduled_for")
+                    if not isinstance(scheduled_raw, str):
+                        continue
+                    try:
+                        scheduled_at = _parse_iso(scheduled_raw)
+                    except ValueError:
+                        continue
+                    if scheduled_at > now:
+                        continue
+                due_posts.append(post)
 
             published = []
             errors = []
@@ -150,18 +162,20 @@ class handler(BaseHTTPRequestHandler):
                     errors.append({"id": post_id, "error": str(exc)})
 
             status_code = 200 if not errors else 207
-            send_json(
-                self,
-                status_code,
-                {
-                    "success": len(errors) == 0,
-                    "checked_at": _iso(now),
-                    "due_count": len(due_posts),
-                    "published_count": len(published),
-                    "published": published,
-                    "errors": errors,
-                },
-            )
+            response_payload = {
+                "success": len(errors) == 0,
+                "checked_at": _iso(now),
+                "action": "publish_all" if publish_all else "publish_due",
+                "published_count": len(published),
+                "published": published,
+                "errors": errors,
+            }
+            if publish_all:
+                response_payload["queued_count"] = len(due_posts)
+            else:
+                response_payload["due_count"] = len(due_posts)
+
+            send_json(self, status_code, response_payload)
         except KVStoreError as exc:
             send_json(self, 503, {"success": False, "error": str(exc)})
         except Exception as exc:

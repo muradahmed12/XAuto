@@ -75,7 +75,7 @@
           </button>
           <button id="publishBtn" type="button" class="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-emerald-400 border border-emerald-600/30 rounded-lg hover:bg-emerald-600/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
-            <span id="publishLabel">Publish Now</span>
+            <span id="publishLabel">Publish Queue</span>
           </button>
           <button id="generateBtn" type="button" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-accent hover:bg-accent-glow text-white rounded-lg shadow-glow transition-all disabled:opacity-50 disabled:cursor-not-allowed">
             <svg id="generateIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
@@ -382,20 +382,23 @@
       }
     }
 
-    async function publishDuePosts() {
+    async function publishQueuedPosts() {
       const btn = document.getElementById('publishBtn');
       const label = document.getElementById('publishLabel');
       btn.disabled = true;
       label.textContent = 'Publishing…';
       try {
-        const data = await apiFetch(API.publish, { method: 'POST' });
+        const data = await apiFetch(API.publish, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'publish_all' }),
+        });
         const count = data.published_count ?? 0;
         if (count > 0) {
           showToast(`Published ${count} post${count === 1 ? '' : 's'}`, 'success');
         } else if (data.errors?.length) {
           showToast(data.errors[0].error || 'Publish failed', 'error');
         } else {
-          showToast('No due posts in queue', 'info');
+          showToast('No approved posts in queue', 'info');
         }
         await loadPosts();
       } catch (err) {
@@ -406,7 +409,7 @@
         }
       } finally {
         btn.disabled = false;
-        label.textContent = 'Publish Now';
+        label.textContent = 'Publish Queue';
       }
     }
 
@@ -421,7 +424,7 @@
 
     function bindEvents() {
       document.getElementById('generateBtn').addEventListener('click', generateDraft);
-      document.getElementById('publishBtn').addEventListener('click', publishDuePosts);
+      document.getElementById('publishBtn').addEventListener('click', publishQueuedPosts);
       document.getElementById('settingsBtn').addEventListener('click', openSettings);
       document.getElementById('closeSettingsBtn').addEventListener('click', closeSettings);
       document.getElementById('settingsBackdrop').addEventListener('click', closeSettings);
